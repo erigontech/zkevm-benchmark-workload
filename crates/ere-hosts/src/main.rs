@@ -25,6 +25,7 @@ pub mod cli;
 const DEFAULT_EXECUTE_TIMEOUT: Duration = Duration::from_secs(5 * 60);
 const DEFAULT_PROVE_TIMEOUT: Duration = Duration::from_secs(15 * 60);
 const DEFAULT_VERIFY_TIMEOUT: Duration = Duration::from_secs(2);
+const DEFAULT_HEALTH_TIMEOUT: Duration = Duration::from_secs(300);
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -180,7 +181,8 @@ const fn build_zkvm_config(
         execute_timeout: Some(DEFAULT_EXECUTE_TIMEOUT),
         prove_timeout: Some(DEFAULT_PROVE_TIMEOUT),
         verify_timeout: Some(DEFAULT_VERIFY_TIMEOUT),
-        health_timeout: Duration::from_secs(5 * 60),
+        // ere v0.16.2 added a container health-check timeout
+        health_timeout: DEFAULT_HEALTH_TIMEOUT,
     };
 
     if let Some(timeout) = timeout_override {

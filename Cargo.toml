@@ -112,6 +112,10 @@ stateless-validator-catalog = { git = "https://github.com/eth-act/ere-guests", r
 stateless-validator-common = { git = "https://github.com/eth-act/ere-guests", rev = "d5a6451221acd42993f4a2c8c40b041e06571dd9" }
 stateless-validator-downloader = { git = "https://github.com/eth-act/ere-guests", rev = "d5a6451221acd42993f4a2c8c40b041e06571dd9" }
 
+# zilkworm host adapter: converts canonical statelessInputBytes -> MFBD bundle.
+# Local path for iteration; switch to an erigontech/z6m git tag for the upstream PR.
+stateless-validator-zilkworm = { path = "../z6m/prover/stateless_validator", package = "z6m_stateless_validator" }
+
 # alloy
 alloy-consensus = { version = "=2.1.1", default-features = false }
 alloy-eips = { version = "=2.1.1", default-features = false }
@@ -145,3 +149,12 @@ tar = "0.4"
 toml = "0.8"
 hex = "0.4"
 zstd = "0.13"
+
+# Local ere-guests checkout: carries the zilkworm catalog kind + registry entry
+# ahead of the upstream ere-guests PR. Patches this workspace's ere-guests deps
+# and the transitive stateless-validator-common pulled by the zilkworm adapter.
+# Remove once the zilkworm changes land in a released ere-guests tag.
+[patch."https://github.com/eth-act/ere-guests"]
+stateless-validator-catalog = { path = "../ere-guests_fork/crates/stateless-validator-catalog" }
+stateless-validator-common = { path = "../ere-guests_fork/crates/stateless-validator-common" }
+stateless-validator-downloader = { path = "../ere-guests_fork/crates/stateless-validator-downloader" }
