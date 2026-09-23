@@ -80,6 +80,7 @@ pub(crate) fn load_eest_benchmark_fixtures(
     value: serde_json::Value,
     path: &Path,
     input_root: &Path,
+    fixture_names: &mut HashSet<String>,
 ) -> Result<Vec<EestStatelessFixture>> {
     let cases: BTreeMap<String, EestBlockchainTest> =
         serde_json::from_value(value).with_context(|| {
@@ -91,7 +92,6 @@ pub(crate) fn load_eest_benchmark_fixtures(
 
     let source_path = relative_source_path(path, input_root);
     let mut fixtures = Vec::new();
-    let mut fixture_names = HashSet::new();
 
     for (test_name, mut case) in cases {
         let chain_id = parse_json_u64(&case.config.chainid)
@@ -167,7 +167,7 @@ pub(crate) fn load_eest_benchmark_fixtures(
             })?;
 
             fixtures.push(EestStatelessFixture {
-                name: unique_eest_fixture_name(&test_name, block_index, &mut fixture_names),
+                name: unique_eest_fixture_name(&test_name, block_index, fixture_names),
                 original_test_name: test_name.clone(),
                 source_path: source_path.clone(),
                 block_index,
@@ -323,6 +323,7 @@ mod tests {
             serde_json::from_str(sample_eest_fixture())?,
             &fixture_path,
             dir.path(),
+            &mut HashSet::new(),
         )?;
         assert_eq!(fixtures.len(), 2);
 
@@ -422,6 +423,7 @@ mod tests {
             serde_json::from_str(&fs::read_to_string(&fixture_path)?)?,
             &fixture_path,
             dir.path(),
+            &mut HashSet::new(),
         )
         .unwrap_err();
         assert!(err
@@ -456,7 +458,8 @@ mod tests {
                 }
             });
 
-            let fixtures = load_eest_benchmark_fixtures(value, &fixture_path, input_root)?;
+            let fixtures =
+                load_eest_benchmark_fixtures(value, &fixture_path, input_root, &mut HashSet::new())?;
             assert_eq!(fixtures.len(), 1);
             let fixture = &fixtures[0];
             assert_eq!(fixture.block_index, 4);
