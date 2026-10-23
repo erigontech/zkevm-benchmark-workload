@@ -273,6 +273,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "TODO(ere@v0.19): Zesu and Nimbus have no ZisK v1.3 release in the ere-guests catalog"]
     fn estimation_requires_input_and_zisk_only_clients_reject_other_zkvms() {
         for (client, expected_client) in [
             ("zesu", stateless_validator::ExecutionClient::Zesu),

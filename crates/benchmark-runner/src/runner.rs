@@ -11,7 +11,6 @@ use ere_util_tokio::block_on;
 use rayon::iter::{ParallelBridge, ParallelIterator};
 use sha2::{Digest, Sha256};
 use stateless_validator_catalog::StatelessValidatorKind;
-use stateless_validator_downloader::{CompiledGuest, Downloader};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use std::{any::Any, env, panic};
@@ -29,11 +28,15 @@ use crate::{guest_programs::GuestFixture, stateless_validator::ExecutionClient};
 
 pub use crate::zisk_profiling::ProfileConfig;
 
-/// How to resolve downloaded guest binaries, derived from the resolved
-/// ere-guests dependency in Cargo.lock at build time.
-const ERE_GUESTS_DOWNLOAD_KIND: &str = env!("ERE_GUESTS_DOWNLOAD_KIND");
-/// Tag or commit SHA matching [`ERE_GUESTS_DOWNLOAD_KIND`].
-const ERE_GUESTS_DOWNLOAD_VALUE: &str = env!("ERE_GUESTS_DOWNLOAD_VALUE");
+/// Guest ELF and program VK, plus the ELF for Zisk profiling when the source has one.
+#[derive(Debug)]
+struct CompiledGuest {
+    elf: Vec<u8>,
+    /// Loaded with the ELF; Ere derives the VK it proves with itself.
+    #[allow(dead_code)]
+    program_vk: Vec<u8>,
+    profiling_elf: Option<Vec<u8>>,
+}
 
 /// Source used to resolve compiled guest programs.
 #[derive(Debug, Clone)]
@@ -471,7 +474,8 @@ fn collect_cost_estimation(
                 output_matched: public_output_matched(io, &public_values)
                     .context("Failed to compare public output from cost estimation")?,
                 cost: report.cost,
-                peak_heap_bytes: report.peak_heap_bytes,
+                // Ere reports the peak heap only from `profile`.
+                peak_heap_bytes: None,
                 context: Box::new(context),
             },
             Ok(Err(err)) => CostEstimationMetrics::Crashed(CrashInfo {
@@ -488,29 +492,13 @@ fn estimator_settings(
     zkvm: zkVMKind,
     env_value: impl Fn(&str) -> Option<String>,
 ) -> BTreeMap<String, String> {
-    let heap_start = if zkvm == zkVMKind::Zisk {
-        "_heap_bottom"
-    } else {
-        "_end"
-    };
-    let mut settings = BTreeMap::from([(
-        "heap_start".to_owned(),
-        env_value("ERE_COST_ESTIMATION_HEAP_START").unwrap_or_else(|| heap_start.to_owned()),
-    )]);
-    match zkvm {
-        zkVMKind::Zisk => {
-            settings.insert(
-                "heap_end".to_owned(),
-                env_value("ERE_COST_ESTIMATION_HEAP_END").unwrap_or_else(|| "_heap_top".to_owned()),
-            );
-        }
-        zkVMKind::OpenVM => {
-            let memory = env_value("ERE_OPENVM_SEGMENT_MEMORY")
-                .and_then(|value| value.parse::<usize>().ok())
-                .unwrap_or(29 << 29);
-            settings.insert("segment_memory_bytes".to_owned(), memory.to_string());
-        }
-        zkVMKind::SP1 => {}
+    // Ere no longer reads the heap symbols; only OpenVM's segment memory is a setting.
+    let mut settings = BTreeMap::new();
+    if zkvm == zkVMKind::OpenVM {
+        let memory = env_value("ERE_OPENVM_SEGMENT_MEMORY")
+            .and_then(|value| value.parse::<usize>().ok())
+            .unwrap_or(29 << 29);
+        settings.insert("segment_memory_bytes".to_owned(), memory.to_string());
     }
     settings
 }
@@ -624,11 +612,14 @@ async fn load_compiled(
         return load_compiled_from_artifact_base_url(&guest_name, base_url).await;
     }
 
-    let downloader = guest_downloader().await?;
-    downloader
-        .download(stateless_validator_kind, zkvm)
+    let guest = stateless_validator_downloader::download(stateless_validator_kind, zkvm)
         .await
-        .with_context(|| format!("Failed to download guest program: {guest_name}"))
+        .with_context(|| format!("Failed to download guest program: {guest_name}"))?;
+    Ok(CompiledGuest {
+        elf: guest.elf,
+        program_vk: guest.program_vk,
+        profiling_elf: None,
+    })
 }
 
 /// Returns the released artifact name of the `stateless_validator` guest compiled for `zkvm`.
@@ -637,53 +628,6 @@ fn guest_artifact_name(stateless_validator: StatelessValidatorKind, zkvm: zkVMKi
         "stateless-validator-{stateless_validator}-{zkvm}-{}",
         zkvm.sdk_version()
     )
-}
-
-async fn guest_downloader() -> Result<Downloader> {
-    match ERE_GUESTS_DOWNLOAD_KIND {
-        "tag" => {
-            info!(
-                "Downloading guest programs from ere-guests release {}",
-                ERE_GUESTS_DOWNLOAD_VALUE
-            );
-            Downloader::from_tag(ERE_GUESTS_DOWNLOAD_VALUE)
-                .await
-                .with_context(|| {
-                    format!(
-                        "Failed to create guest program downloader for ere-guests release {}",
-                        ERE_GUESTS_DOWNLOAD_VALUE
-                    )
-                })
-        }
-        "commit" => {
-            env::var("GITHUB_TOKEN")
-                .or_else(|_| env::var("GH_TOKEN"))
-                .with_context(|| {
-                    format!(
-                        "GITHUB_TOKEN or GH_TOKEN must be set to download guest artifacts for ere-guests commit {}",
-                        ERE_GUESTS_DOWNLOAD_VALUE
-                    )
-                })?;
-
-            info!(
-                "Downloading guest programs from ere-guests workflow artifacts for commit {}",
-                ERE_GUESTS_DOWNLOAD_VALUE
-            );
-            Downloader::from_commit(ERE_GUESTS_DOWNLOAD_VALUE)
-                .await
-                .with_context(|| {
-                    format!(
-                        "Failed to create guest program downloader for ere-guests commit {}",
-                        ERE_GUESTS_DOWNLOAD_VALUE
-                    )
-                })
-        }
-        other => Err(anyhow!(
-            "Unsupported ere-guests download source `{}` with value `{}`",
-            other,
-            ERE_GUESTS_DOWNLOAD_VALUE
-        )),
-    }
 }
 
 async fn load_compiled_from_artifact_base_url(
@@ -859,7 +803,6 @@ mod tests {
                     output.as_slice().into(),
                     CostEstimation {
                         cost: BTreeMap::from([("opcode".into(), 99)]),
-                        peak_heap_bytes: None,
                     },
                 ))
             })?;
@@ -888,9 +831,9 @@ mod tests {
                 ["segment_memory_bytes"],
             (29_usize << 29).to_string()
         );
-        let settings = estimator_settings(zkVMKind::Zisk, |key| Some(key.to_lowercase()));
-        assert_eq!(settings["heap_start"], "ere_cost_estimation_heap_start");
-        assert_eq!(settings["heap_end"], "ere_cost_estimation_heap_end");
+        for zkvm in [zkVMKind::SP1, zkVMKind::Zisk] {
+            assert!(estimator_settings(zkvm, |key| Some(key.to_lowercase())).is_empty());
+        }
     }
 
     #[test]

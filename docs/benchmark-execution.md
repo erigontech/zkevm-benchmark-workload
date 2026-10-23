@@ -191,13 +191,11 @@ When `--proofs-url` is used, the archive is downloaded, extracted to a temporary
 
 ## Guest Artifact Resolution
 
-Default guests use the `ere-guests v0.18.1` release assets.
-`GH_TOKEN` or `GITHUB_TOKEN` is optional for release downloads.
-The upstream downloader uses the first nonempty token in that order.
-Commit or branch dependencies still require a token for GitHub Actions artifacts.
+Default guests come from the ELF and VK URLs in the `artifact-registry.json` of the resolved ere-guests.
+The download fails unless both match their registered sha256. It needs no GitHub token.
 
 Prebuilt Ere images are available with `ERE_IMAGE_REGISTRY=ghcr.io/eth-act/ere`.
-The dependency selects image revision `5023513`.
+The dependency selects image revision `fba5601` (Ere v0.19.5).
 
 Artifacts are named `stateless-validator-<execution-client>-<zkvm>-<zkvm-sdk-version>`, so a zkVM SDK bump changes the resolved file names.
 

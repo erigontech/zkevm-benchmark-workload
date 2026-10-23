@@ -178,7 +178,7 @@ A cost result uses the following structure. The hashes below are illustrative pl
         "ere_revision": "5023513",
         "elf_sha256": "<SHA-256 of actual ELF bytes>",
         "input_sha256": "<SHA-256 of raw input bytes>",
-        "estimator_settings": {"heap_start": "_end"}
+        "estimator_settings": {}
       }
     }
   }
@@ -194,17 +194,13 @@ These values estimate proving work. They are not prices, execution cycles, or me
 | SP1 | `3 * trace_area + complexity` (ten times SP1 gas) | `opcode`, `syscall`, `system` |
 | ZisK | Trace cells | `base`, `precompile`, `memory`, `opcode`, `main` |
 
-Component names and units follow [Ere v0.18.1](https://github.com/eth-act/ere/tree/v0.18.1/crates/prover).
+Component names and units follow [Ere v0.19.5](https://github.com/eth-act/ere/tree/v0.19.5/crates/prover).
 Raw costs must not be compared across zkVMs, SDK versions, Ere revisions, or estimator settings.
 
-`peak_heap_bytes` is an estimator measurement of guest heap memory. It is not host RAM or a precise allocator high-water mark.
-OpenVM and ZisK estimate the span of nonzero heap bytes. SP1 measures guest memory above its heap symbol.
-Missing symbols or unreadable heap memory can produce `null`. A missing measurement is not zero.
+`peak_heap_bytes` is `null`: since v0.19, Ere measures the peak heap only in its profile, which the runner does not take. A missing measurement is not zero.
 
 The context records effective settings that affect measurement:
 
-- `heap_start`: `ERE_COST_ESTIMATION_HEAP_START`, default `_end` for OpenVM/SP1 or `_heap_bottom` for ZisK.
-- `heap_end`: ZisK's `ERE_COST_ESTIMATION_HEAP_END`, default `_heap_top`.
 - `segment_memory_bytes`: OpenVM's `ERE_OPENVM_SEGMENT_MEMORY`, default `15569256448` bytes (14.5 GiB).
 
 Invalid OpenVM segment-memory values use the upstream default. Scheduling concurrency does not change the recorded cost model.

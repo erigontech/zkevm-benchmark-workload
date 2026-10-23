@@ -91,16 +91,19 @@ mod tests {
         );
         assert_eq!(ExecutionClient::Reth.version().unwrap(), "0.1.0-rc.5");
         assert_eq!(ExecutionClient::Ethrex.version().unwrap(), "30.0.0");
-        assert_eq!(ExecutionClient::Zesu.version().unwrap(), "tests@v21.0.0");
-        assert_eq!(ExecutionClient::Nimbus.version().unwrap(), "v0.2.1-alpha");
+        assert_eq!(
+            ExecutionClient::Zilkworm.version().unwrap(),
+            "0.1.0-alpha.6"
+        );
+        // The Ere v0.19.5 catalog has no Zesu or Nimbus release yet.
+        for unregistered in [ExecutionClient::Zesu, ExecutionClient::Nimbus] {
+            assert!(unregistered.version().is_err());
+        }
         for zkvm in [zkVMKind::OpenVM, zkVMKind::SP1, zkVMKind::Zisk] {
             assert!(ExecutionClient::Reth.validate_zkvm(zkvm).is_ok());
             assert!(ExecutionClient::Ethrex.validate_zkvm(zkvm).is_ok());
-            for zisk_only in [ExecutionClient::Zesu, ExecutionClient::Nimbus] {
-                assert_eq!(
-                    zisk_only.validate_zkvm(zkvm).is_ok(),
-                    zkvm == zkVMKind::Zisk
-                );
+            for unregistered in [ExecutionClient::Zesu, ExecutionClient::Nimbus] {
+                assert!(unregistered.validate_zkvm(zkvm).is_err());
             }
         }
     }
