@@ -3,8 +3,9 @@
 //! Each test executes and cost-estimates the real EEST fixtures in `testdata/eest` and requires
 //! every result to match the fixture's expected output. The tests need Docker and network
 //! access: Ere pulls `ere-server-sp1` from `ERE_IMAGE_REGISTRY` (default `ghcr.io/eth-act/ere`),
-//! and the runner downloads the pinned guests from the ere-guests release. Set `GITHUB_TOKEN`
-//! to avoid GitHub API rate limits.
+//! and the runner downloads the guests that the resolved ere-guests `artifact-registry.json`
+//! registers. Under Ere v0.19.5 it registers no Reth or Ethrex SP1 guest, so both tests fail
+//! until those publish SP1 v6.9.0 guests.
 //!
 //! Ere names the server container after the zkVM, so these tests replace any running
 //! `ere-server-sp1` container.
