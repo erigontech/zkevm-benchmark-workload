@@ -89,8 +89,8 @@ mod tests {
             ExecutionClient::Ethrex.registered_kind().unwrap(),
             StatelessValidatorKind::Ethrex
         );
-        assert_eq!(ExecutionClient::Reth.version().unwrap(), "0.1.0-rc.5");
-        assert_eq!(ExecutionClient::Ethrex.version().unwrap(), "30.0.0");
+        assert_eq!(ExecutionClient::Reth.version().unwrap(), "0.1.0-rc.6");
+        assert_eq!(ExecutionClient::Ethrex.version().unwrap(), "30.0.1");
         assert_eq!(
             ExecutionClient::Zilkworm.version().unwrap(),
             "0.1.0-alpha.7"

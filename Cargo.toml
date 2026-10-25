@@ -145,11 +145,11 @@ hex = "0.4"
 zstd = "0.13"
 
 # erigontech/ere-guests fork: carries the zilkworm catalog kind + registry entry
-# ahead of the upstream ere-guests PR, on Ere v0.19.5 (SP1 v6.9.0), which no
-# ere-guests release targets yet. All three crates come from the fork, as the
+# of the upstream ere-guests PR (eth-act/ere-guests#98, stacked on the Ere v0.19.5
+# bump #103), which no ere-guests release targets yet. All three crates come from the fork, as the
 # upstream downloader would pull a second ere-catalog.
 # Remove once the zilkworm changes land in a released ere-guests tag.
 [patch."https://github.com/eth-act/ere-guests"]
-stateless-validator-catalog = { git = "https://github.com/erigontech/ere-guests", rev = "56af812f3b4ae04f0bab9eb65be76f21ee6081ca" }
-stateless-validator-common = { git = "https://github.com/erigontech/ere-guests", rev = "56af812f3b4ae04f0bab9eb65be76f21ee6081ca" }
-stateless-validator-downloader = { git = "https://github.com/erigontech/ere-guests", rev = "56af812f3b4ae04f0bab9eb65be76f21ee6081ca" }
+stateless-validator-catalog = { git = "https://github.com/erigontech/ere-guests", rev = "8244f06366ddaa594c1d6aaa49f025ea217a475d" }
+stateless-validator-common = { git = "https://github.com/erigontech/ere-guests", rev = "8244f06366ddaa594c1d6aaa49f025ea217a475d" }
+stateless-validator-downloader = { git = "https://github.com/erigontech/ere-guests", rev = "8244f06366ddaa594c1d6aaa49f025ea217a475d" }
