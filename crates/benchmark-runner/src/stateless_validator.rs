@@ -93,7 +93,7 @@ mod tests {
         assert_eq!(ExecutionClient::Ethrex.version().unwrap(), "30.0.0");
         assert_eq!(
             ExecutionClient::Zilkworm.version().unwrap(),
-            "0.1.0-alpha.6"
+            "0.1.0-alpha.7"
         );
         // The Ere v0.19.5 catalog has no Zesu or Nimbus release yet.
         for unregistered in [ExecutionClient::Zesu, ExecutionClient::Nimbus] {

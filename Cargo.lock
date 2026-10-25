@@ -3755,7 +3755,7 @@ checksum = "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596"
 [[package]]
 name = "stateless-validator-catalog"
 version = "0.18.1"
-source = "git+https://github.com/erigontech/ere-guests?rev=9fc7e7142fda2c7fbb6f29092fe06fc2fef949e0#9fc7e7142fda2c7fbb6f29092fe06fc2fef949e0"
+source = "git+https://github.com/erigontech/ere-guests?rev=56af812f3b4ae04f0bab9eb65be76f21ee6081ca#56af812f3b4ae04f0bab9eb65be76f21ee6081ca"
 dependencies = [
  "serde",
  "serde_json",
@@ -3765,7 +3765,7 @@ dependencies = [
 [[package]]
 name = "stateless-validator-common"
 version = "0.18.1"
-source = "git+https://github.com/erigontech/ere-guests?rev=9fc7e7142fda2c7fbb6f29092fe06fc2fef949e0#9fc7e7142fda2c7fbb6f29092fe06fc2fef949e0"
+source = "git+https://github.com/erigontech/ere-guests?rev=56af812f3b4ae04f0bab9eb65be76f21ee6081ca#56af812f3b4ae04f0bab9eb65be76f21ee6081ca"
 dependencies = [
  "libssz",
  "libssz-derive",
@@ -3778,7 +3778,7 @@ dependencies = [
 [[package]]
 name = "stateless-validator-downloader"
 version = "0.18.1"
-source = "git+https://github.com/erigontech/ere-guests?rev=9fc7e7142fda2c7fbb6f29092fe06fc2fef949e0#9fc7e7142fda2c7fbb6f29092fe06fc2fef949e0"
+source = "git+https://github.com/erigontech/ere-guests?rev=56af812f3b4ae04f0bab9eb65be76f21ee6081ca#56af812f3b4ae04f0bab9eb65be76f21ee6081ca"
 dependencies = [
  "anyhow",
  "ere-catalog",
@@ -3998,7 +3998,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.3.4",
+ "getrandom 0.4.3",
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
